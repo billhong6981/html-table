@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html manifest="manifest.mf">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width">
+
+    <title>Promise example</title>
+    <link rel="shortcut icon" href="BH-logo.png" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="minimal-table.css">
+</head>
+
+<body>
+    <h1>Billie<br />Jean<br />King</h1>
+
+    <div class="controls" tabindex="0">
+        <form>
+            <fieldset>
+                <legend>Please Select a file</legend>
+                <input type="text" id="myFile" name="file" list="filelist" />
+                <datalist id="filelist">
+                    <select name="allfile">
+                        <option>Planets Data</option>
+                    </select>
+                </datalist>
+            </fieldset>
+        </form>
+    </div>
+    <div id="btn"></div>
+    <div id="fileContent">
+
+    </div>
+</body>
+
+<script>
+    function stringFromUTF8Array(data) {
+        const extraByteMap = [1, 1, 1, 1, 2, 2, 3, 0];
+        var count = data.length;
+        var str = "";
+
+        for (var index = 0; index < count;) {
+            var ch = data[index++];
+            if (ch & 0x80) {
+                var extra = extraByteMap[(ch >> 3) & 0x07];
+                if (!(ch & 0x40) || !extra || ((index + extra) > count))
+                    return null;
+
+                ch = ch & (0x3F >> extra);
+                for (; extra > 0; extra -= 1) {
+                    var chx = data[index++];
+                    if ((chx & 0xC0) != 0x80)
+                        return null;
+
+                    ch = (ch << 6) | (chx & 0x3F);
+                }
+            }
+
+            str += String.fromCharCode(ch);
+        }
+
+        return str;
+    }
+
+    const Btn = `
+        <button onclick="showTable()">Click To Render the file content into a Table</button>
+        `
+    const content = `
+        <fieldset class="content">
+            <legend>File Content</legend>
+            <div id="info"></div>
+        </fieldset>
+        `
+    var myTable = `
+    <h2>Planets Data Table</h2>
+    <table>
+        <caption></caption>
+
+        <thead>
+            <colgroup>
+                <col span="2">
+                <col style="border: 4px solid #c1437A;">
+            </colgroup>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="2" scope="row">&nbsp;</td>
+                <th id="name">Name</th>
+                <th id="mass">Mass (10<sup>24</sup>kg)</th>
+                <th id="diameter">Diameter (km)</th>
+                <th id="density">Density (kg/m<sup>3</sup>)</th>
+                <th id="gravity">Gravity (m/s<sup>2</sup>)</th>
+                <th id="length">Length of day (hours)</th>
+                <th id="distance">Distance from Sun (10<sup>6</sup>km)</th>
+                <th id="temperature">Mean temperature (°C)</th>
+                <th id="moons">Number of moons</th>
+                <th id="notes">Notes</th>
+            </tr>
+            <tr>
+                <th id="terrestrial" rowspan="4" colspan="2" scope="row">Terrestrial planets</th>
+                <th id="mercury" headers="terrestrial name">Mercury</th>
+                <td headers="terrestrial mercury mass">&nbsp;</td>
+                <td headers="terrestrial mercury diameter">&nbsp;</td>
+                <td headers="terrestrial mercury density">&nbsp;</td>
+                <td headers="terrestrial mercury gravity">&nbsp;</td>
+                <td headers="terrestrial mercury length">&nbsp;</td>
+                <td headers="terrestrial mercury distance">&nbsp;</td>
+                <td headers="terrestrial mercury mean">&nbsp;</td>
+                <td headers="terrestrial mercury number">&nbsp;</td>
+                <td headers="terrestrial mercury notes">&nbsp;</td>
+            </tr>
+            <tr>
+                <th id="venus" headers="terrestrial name">Venus</th>
+                <td headers="terrestrial venus mass">&nbsp;</td>
+                <td headers="terrestrial venus diameter">&nbsp;</td>
+                <td headers="terrestrial venus density">&nbsp;</td>
+                <td headers="terrestrial venus gravity">&nbsp;</td>
+                <td headers="terrestrial venus length">&nbsp;</td>
+                <td headers="terrestrial venus distance">&nbsp;</td>
+                <td headers="terrestrial venus mean">&nbsp;</td>
+                <td headers="terrestrial venus number">&nbsp;</td>
+                <td headers="terrestrial venus notes">&nbsp;</td>
+            </tr>
+            <tr>
+                <th id="earth" headers="terrestrial name">Earth</th>
+                <td headers="terrestrial earth mass">&nbsp;</td>
+                <td headers="terrestrial earth diameter">&nbsp;</td>
+                <td headers="terrestrial earth density">&nbsp;</td>
+                <td headers="terrestrial earth gravity">&nbsp;</td>
+                <td headers="terrestrial earth length">&nbsp;</td>
+                <td headers="terrestrial earth distance">&nbsp;</td>
+                <td headers="terrestrial earth mean">&nbsp;</td>
+                <td headers="terrestrial earth number">&nbsp;</td>
+                <td headers="terrestrial earth notes">&nbsp;</td>
+            </tr>
+            <tr>
+                <th id="mars" headers="terrestrial name">Mars</th>
+                <td headers="terrestrial mars mass">&nbsp;</td>
+                <td headers="terrestrial mars diameter">&nbsp;</td>
+                <td headers="terrestrial mars density">&nbsp;</td>
+                <td headers="terrestrial mars gravity">&nbsp;</td>
+                <td headers="terrestrial mars length">&nbsp;</td>
+                <td headers="terrestrial mars distance">&nbsp;</td>
+                <td headers="terrestrial mars mean">&nbsp;</td>
+                <td headers="terrestrial mars number">&nbsp;</td>
+                <td headers="terrestrial mars notes">&nbsp;</td>
+            </tr>
+            <tr>
+                <th rowspan="4" scope="row" id="jovian">Jovian planets</th>
+                <th rowspan="2" scope="row" id="gas">Gas giants</th>
+                <th headers="jovian gas name" id="jupiter">Jupiter</th>
+                <td headers="jovian gas jupiter mass">&nbsp;</td>
+                <td headers="jovian gas jupiter diameter">&nbsp;</td>
+                <td headers="jovian gas jupiter density">&nbsp;</td>
+                <td headers="jovian gas jupiter gravity">&nbsp;</td>
+                <td headers="jovian gas jupiter length">&nbsp;</td>
+                <td headers="jovian gas jupiter distance">&nbsp;</td>
+                <td headers="jovian gas jupiter mean">&nbsp;</td>
+                <td headers="jovian gas jupiter number">&nbsp;</td>
+                <td headers="jovian gas jupiter notes">&nbsp;</td>
+            </tr>
+            <tr>
+                <th headers="jovian gas name" id="saturn">Saturn</th>
+                <td headers="jovian gas saturn mass">&nbsp;</td>
+                <td headers="jovian gas saturn diameter">&nbsp;</td>
+                <td headers="jovian gas saturn density">&nbsp;</td>
+                <td headers="jovian gas saturn gravity">&nbsp;</td>
+                <td headers="jovian gas saturn length">&nbsp;</td>
+                <td headers="jovian gas saturn distance">&nbsp;</td>
+                <td headers="jovian gas saturn mean">&nbsp;</td>
+                <td headers="jovian gas saturn number">&nbsp;</td>
+                <td headers="jovian gas saturn notes">&nbsp;</td>
+            </tr>
+            <tr>
+                <th rowspan="2" scope="row" id="ice">Ice giants</th>
+                <th headers="jovian ice name" id="uranus">Uranus</th>
+                <td headers="jovian ice uranus mass">&nbsp;</td>
+                <td headers="jovian ice uranus diameter">&nbsp;</td>
+                <td headers="jovian ice uranus density">&nbsp;</td>
+                <td headers="jovian ice uranus gravity">&nbsp;</td>
+                <td headers="jovian ice uranus length">&nbsp;</td>
+                <td headers="jovian ice uranus distance">&nbsp;</td>
+                <td headers="jovian ice uranus mean">&nbsp;</td>
+                <td headers="jovian ice uranus number">&nbsp;</td>
+                <td headers="jovian ice uranus notes">&nbsp;</td>
+            </tr>
+            <tr>
+                <th headers="jovian ice name" id="neptune">Neptune</th>
+                <td headers="jovian ice neptune mass">&nbsp;</td>
+                <td headers="jovian ice neptune diameter">&nbsp;</td>
+                <td headers="jovian ice neptune density">&nbsp;</td>
+                <td headers="jovian ice neptune gravity">&nbsp;</td>
+                <td headers="jovian ice neptune length">&nbsp;</td>
+                <td headers="jovian ice neptune distance">&nbsp;</td>
+                <td headers="jovian ice neptune mean">&nbsp;</td>
+                <td headers="jovian ice neptune number">&nbsp;</td>
+                <td headers="jovian ice neptune notes">&nbsp;</td>
+            </tr>
+            <tr>
+                <th colspan="2" scope="row" id="dwarf">Dwarf planets*</th>
+                <th headers="dwarf name" id="pluto">Pluto</th>
+                <td headers="dwarf pluto mass">&nbsp;</td>
+                <td headers="dwarf pluto diameter">&nbsp;</td>
+                <td headers="dwarf pluto density">&nbsp;</td>
+                <td headers="dwarf pluto gravity">&nbsp;</td>
+                <td headers="dwarf pluto length">&nbsp;</td>
+                <td headers="dwarf pluto distance">&nbsp;</td>
+                <td headers="dwarf pluto mean">&nbsp;</td>
+                <td headers="dwarf pluto number">&nbsp;</td>
+                <td headers="dwarf pluto notes">&nbsp;</td>
+            </tr>
+        </tbody>
+    </table>
+    `
+    function fileLoad(url) {
+        // Create new promise with the Promise() constructor;
+        // This has as its argument a function
+        // with two parameters, resolve and reject
+        return new Promise(function (resolve, reject) {
+            // Standard XHR to load a file
+            //var str = '';
+            var request = new XMLHttpRequest();
+            request.open('GET', url);
+            request.responseType = 'arraybuffer';
+            // When the request loads, check whether it was successful
+            request.onload = function () {
+                if (request.status === 200) {
+                    // If successful, resolve the promise by passing back the request response
+                    // resolve(request.response);
+                    var arrayBuffer = request.response
+                    if (arrayBuffer) {
+                        var byteArray = new Uint8Array(arrayBuffer);
+                        //for (var i = 0; i < byteArray.byteLength; i++) {
+                        //    str += String.fromCharCode(byteArray[i]);
+                        //}
+                        var str = stringFromUTF8Array(byteArray);
+                    }
+                    resolve(str);
+                } else {
+                    // If it fails, reject the promise with a error message
+                    reject(Error('File didn\'t load successfully; error code:' + request.statusText));
+                }
+            };
+            request.onerror = function () {
+                // Also deal with the case when the entire request fails to begin with
+                // This is probably a network error, so reject the promise with an appropriate message
+                reject(Error('There was a network error.'));
+            };
+            // Send the request
+            request.send();
+        });
+    }
+    // Get a reference to the select element
+    const fileChoose = document.querySelector('#myFile');
+    fileChoose.onchange = () => {
+        var fileName = fileChoose.value;
+        fileName = fileName.replace(" ", "-");
+        fileName = fileName.toLowerCase();
+        fileName = fileName + ".txt";
+
+        const btn = document.getElementById('btn');
+        btn.innerHTML = Btn;
+
+        const fileContent = document.getElementById('fileContent');
+        fileContent.innerHTML = content;
+
+        // Call the function with the URL we want to load, but then chain the
+        // promise then() method on to the end of it. This contains two callbacks
+        fileLoad(fileName).then(function (response) {
+            // The first runs when the promise resolves, with the request.response
+            // specified within the resolve() method.
+            //
+            //var imageURL = window.URL.createObjectURL(response);
+            //myImage.src = imageURL;
+            //var buffer = [];
+            //const buffer = new ArrayBuffer(response);
+
+            // Create a view
+            //const view = new DataView(buffer);
+            //const typedArray1 = new Int8Array(buffer);
+            const div = document.getElementById('info');
+            //const typedArray1 = new Int8Array(response);
+            var str1 = '';
+            for (let i = 0; i < response.length; i++) {
+                response[i] === '\n' ? str1 += '<br />' : str1 += response[i];
+            };
+            div.innerHTML = `${str1}`;
+
+            //alert(str1);
+            var obj1 = {};
+            const array = str1.split('<br />');
+            const array1 = array.filter(x => x);
+            obj1.Rows = () => {
+                var value1 = [];
+                let j = array1.indexOf('Columns');
+                for (let i = array1.indexOf('Rows') + 1; i < j; i++) {
+                    value1.push(array1[i]);
+                }
+                return value1;
+            }
+            obj1.Columns = () => {
+                var value2 = [];
+                let j = array1.indexOf('Caption');
+                for (let i = array1.indexOf('Columns') + 1; i < j; i++) {
+                    value2.push(array1[i]);
+                }
+                return value2;
+            }
+            obj1.Caption = () => {
+                return array1[array1.indexOf('Caption') + 1];
+            }
+
+            const caption = obj1.Caption();
+            const columns = obj1.Columns();
+            const rows = obj1.Rows();
+
+            var obj2 = {};
+            j = rows.indexOf('Jovian planets');
+            let k = rows.indexOf('Ice giants');
+            let m = rows.indexOf('Dwarf planets*');
+
+            let str2 = rows[0].split(' ')[0].toLowerCase();
+
+            for (i = 1; i < j; i++) {
+                let str2A = str2 + ' ' + rows[i].split(' ')[0].toLowerCase();
+                for (var n = 1; n < columns.length; n++) {
+                    var str2B = str2A + ' ' + columns[n].split(' ')[0].toLowerCase();
+                    obj2[`${str2B}`] = rows[i].split(' ')[n];
+                }
+                var notes = rows[i].split(' ')[n - 1];
+                while (rows[i].split(' ')[n]) {
+                    notes = notes + ' ' + rows[i].split(' ')[n];
+                    n++;
+                }
+                obj2[`${str2B}`] = notes;
+            }
+
+            let str3 = rows[j].split(' ')[0].toLowerCase();
+            let str3C = str3;
+            str3 = str3 + ' ' + rows[j + 1].split(' ')[0].toLowerCase();
+            for (i = j + 2; i < k; i++) {
+                let str3A = str3 + ' ' + rows[i].split(' ')[0].toLowerCase();
+                for (n = 1; n < columns.length; n++) {
+                    var str3B = str3A + ' ' + columns[n].split(' ')[0].toLowerCase();
+                    obj2[`${str3B}`] = rows[i].split(' ')[n];
+                }
+                notes = rows[i].split(' ')[n - 1]
+                while (rows[i].split(' ')[n]) {
+                    notes = notes + ' ' + rows[i].split(' ')[n];
+                    n++;
+                }
+                obj2[`${str3B}`] = notes;
+            }
+
+            let str4 = rows[k].split(' ')[0].toLowerCase();
+            str4 = str3C + ' ' + str4;
+            for (i = k + 1; i < m; i++) {
+                let str4A = str4 + ' ' + rows[i].split(' ')[0].toLowerCase();
+                for (n = 1; n < columns.length; n++) {
+                    var str4B = str4A + ' ' + columns[n].split(' ')[0].toLowerCase();
+                    obj2[`${str4B}`] = rows[i].split(' ')[n];
+                }
+                notes = rows[i].split(' ')[n - 1]
+                while (rows[i].split(' ')[n]) {
+                    notes = notes + ' ' + rows[i].split(' ')[n];
+                    n++;
+                }
+                obj2[`${str4B}`] = notes;
+            }
+
+            let str5 = rows[m].split(' ')[0].toLowerCase();
+
+            str5 = str5 + ' ' + rows[m + 1].split(' ')[0].toLowerCase();
+            for (let n = 1; n < columns.length; n++) {
+                var str5A = str5 + ' ' + columns[n].split(' ')[0].toLowerCase();
+                obj2[`${str5A}`] = rows[m + 1].split(' ')[n];
+            }
+            notes = rows[m+1].split(' ')[n-1]
+            while (rows[m+1].split(' ')[n]) {
+                notes = notes + ' ' + rows[m+1].split(' ')[n];
+                n++;
+            }
+            obj2[`${str5A}`] = notes;
+
+            myTable = myTable.replace('<caption></caption>', `<caption>${caption}</caption>`);
+            var entries = Object.entries(obj2);
+            for (var entry of entries) {
+                if (entry[1]) {
+                    myTable = myTable.replace(`<td headers="${entry[0]}">&nbsp;</td>`, `<td headers="${entry[0]}">${entry[1]}</td>`);
+                }
+            }
+            //const div1 = document.getElementById('info1');
+            //div1.href = imageURL;
+            //div1.textContent = "click me";
+            //div.innerHTML = `<p>${buffer}</p>`;
+            //body.appendChild(myImage);
+            // The second runs when the promise
+            // is rejected, and logs the Error specified with the reject() method.
+        }, function (Error) {
+            console.log(Error);
+        });
+    }
+
+    const showTable = () => {
+        const myBody = document.querySelector('body');
+        while (myBody.hasChildNodes()) {
+            myBody.removeChild(myBody.firstChild);
+        }
+        myBody.innerHTML = myTable;
+    }
+
+</script>
+
+</html>
