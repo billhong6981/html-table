@@ -50,11 +50,11 @@ h1 {
 
 #btn {
     width: 75%;
-    font-size: 5vw;
+    font-size: 3vw;
     margin: 1vw auto;
 }
 #btn button {
-    font-size: 5vw;
+    font-size: 3vw;
     color: rebeccapurple;
     background: linear-gradient(to bottom,
           #fc340b 0%,
